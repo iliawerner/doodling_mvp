@@ -1,21 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zen Fidget</title>
-    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="app">
-      <aside class="palette" aria-label="Палитра объектов">
-        <button class="palette-item" type="button" data-object-type="stone" aria-label="Добавить камешек"></button>
-        <button class="palette-item" type="button" data-object-type="glass" aria-label="Добавить стеклышко"></button>
-        <button class="palette-item" type="button" data-object-type="orb" aria-label="Добавить шарик"></button>
-      </aside>
-      <main class="canvas" aria-label="Холст" role="application"></main>
-      <button class="clear-button" type="button" aria-label="Очистить холст"></button>
-    </div>
-    <script src="script.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

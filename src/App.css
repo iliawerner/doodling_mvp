@@ -1,0 +1,167 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #f6f7f4 0%, #edeae4 45%, #e0dbd1 100%);
+  color: #243241;
+}
+
+.palette {
+  width: clamp(72px, 16vw, 120px);
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(18px);
+  padding: clamp(16px, 3vh, 24px) 12px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 3vh, 24px);
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid rgba(36, 50, 65, 0.08);
+}
+
+.palette-item {
+  width: clamp(54px, 6vw, 70px);
+  height: clamp(54px, 6vw, 70px);
+  background: rgba(255, 255, 255, 0.6);
+  border: none;
+  position: relative;
+  cursor: grab;
+  padding: 0;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  box-shadow: inset 0 0 0 1px rgba(36, 50, 65, 0.08),
+    0 6px 18px rgba(31, 43, 55, 0.12);
+}
+
+.palette-item::after {
+  content: '';
+  position: absolute;
+  inset: 10%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.65), rgba(173, 196, 209, 0.28));
+  box-shadow: inset 0 0 0 1px rgba(36, 50, 65, 0.06);
+}
+
+.palette-item:active {
+  cursor: grabbing;
+  transform: translateY(2px) scale(0.98);
+  box-shadow: inset 0 0 0 1px rgba(36, 50, 65, 0.1),
+    0 4px 12px rgba(31, 43, 55, 0.12);
+}
+
+.workspace {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: clamp(12px, 3vh, 24px);
+}
+
+.canvas {
+  flex: 1;
+  border-radius: clamp(20px, 4vw, 36px);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.88), rgba(228, 233, 238, 0.78));
+  border: 1px solid rgba(36, 50, 65, 0.08);
+  box-shadow: inset 0 0 30px rgba(36, 50, 65, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.fidget-object {
+  position: absolute;
+  touch-action: none;
+  cursor: grab;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 18px 32px rgba(30, 41, 51, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.fidget-object:active {
+  cursor: grabbing;
+}
+
+.object-gloss {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.75), transparent 55%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+  border-radius: inherit;
+}
+
+.shape-pebble {
+  border-radius: 58% 42% 63% 37% / 48% 62% 38% 52%;
+}
+
+.shape-shard {
+  border-radius: 42% 15% 70% 24% / 35% 68% 32% 65%;
+  clip-path: polygon(12% 10%, 88% 6%, 94% 44%, 74% 94%, 22% 82%, 6% 38%);
+}
+
+.shape-orb {
+  border-radius: 50%;
+}
+
+.clear-button {
+  position: absolute;
+  right: clamp(16px, 3vw, 28px);
+  bottom: clamp(16px, 3vw, 28px);
+  border: none;
+  background: rgba(36, 50, 65, 0.16);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 120ms ease, transform 120ms ease;
+  box-shadow: 0 12px 24px rgba(31, 43, 55, 0.12);
+}
+
+.clear-button:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.clear-button:hover,
+.clear-button:focus-visible {
+  background: rgba(36, 50, 65, 0.24);
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .palette {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    border-right: none;
+    border-bottom: 1px solid rgba(36, 50, 65, 0.08);
+    gap: clamp(12px, 4vw, 22px);
+    padding: 12px clamp(16px, 6vw, 24px);
+  }
+
+  .workspace {
+    padding: clamp(12px, 4vw, 24px);
+  }
+
+  .clear-button {
+    right: clamp(12px, 4vw, 20px);
+    bottom: clamp(12px, 4vw, 20px);
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .palette-item {
+    width: clamp(48px, 16vw, 60px);
+    height: clamp(48px, 16vw, 60px);
+  }
+}
