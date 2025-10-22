@@ -94,31 +94,45 @@ function handlePalettePointerDown(event) {
 
 function handleGlobalPointerMove(event) {
   const session = pointerSessions.get(event.pointerId);
-  if (!session || !session.fromPalette) {
+  if (!session) {
     return;
   }
 
   event.preventDefault();
-  positionElement(session.element, event.clientX, event.clientY, session.offsetX, session.offsetY);
+
+  if (session.fromPalette) {
+    positionElement(session.element, event.clientX, event.clientY, session.offsetX, session.offsetY);
+  } else {
+    updateObjectPointerMove(session, event);
+  }
 }
 
 function handleGlobalPointerUp(event) {
   const session = pointerSessions.get(event.pointerId);
-  if (!session || !session.fromPalette) {
+  if (!session) {
     return;
   }
 
   event.preventDefault();
-  finalizePaletteDrag(session, event.clientX, event.clientY, false);
+
+  if (session.fromPalette) {
+    finalizePaletteDrag(session, event.clientX, event.clientY, false);
+  } else {
+    finalizeObjectPointer(session, event, false);
+  }
 }
 
 function handleGlobalPointerCancel(event) {
   const session = pointerSessions.get(event.pointerId);
-  if (!session || !session.fromPalette) {
+  if (!session) {
     return;
   }
 
-  finalizePaletteDrag(session, event.clientX, event.clientY, true);
+  if (session.fromPalette) {
+    finalizePaletteDrag(session, event.clientX, event.clientY, true);
+  } else {
+    finalizeObjectPointer(session, event, true);
+  }
 }
 
 function finalizePaletteDrag(session, clientX, clientY, cancelled) {
@@ -163,9 +177,6 @@ function createFidgetObject(type) {
   }
 
   element.addEventListener('pointerdown', handleObjectPointerDown);
-  element.addEventListener('pointermove', handleObjectPointerMove);
-  element.addEventListener('pointerup', handleObjectPointerUp);
-  element.addEventListener('pointercancel', handleObjectPointerCancel);
   element.addEventListener('dblclick', () => removeObject(element));
   element.addEventListener('transitionend', handleTransitionEnd);
 
@@ -191,12 +202,7 @@ function handleObjectPointerDown(event) {
   pointerSessions.set(event.pointerId, session);
 }
 
-function handleObjectPointerMove(event) {
-  const session = pointerSessions.get(event.pointerId);
-  if (!session || session.fromPalette) {
-    return;
-  }
-
+function updateObjectPointerMove(session, event) {
   if (!session.hasMoved) {
     const deltaX = event.clientX - session.startX;
     const deltaY = event.clientY - session.startY;
@@ -220,12 +226,7 @@ function handleObjectPointerMove(event) {
   positionElement(session.element, event.clientX, event.clientY, session.offsetX, session.offsetY);
 }
 
-function handleObjectPointerUp(event) {
-  const session = pointerSessions.get(event.pointerId);
-  if (!session || session.fromPalette) {
-    return;
-  }
-
+function finalizeObjectPointer(session, event, cancelled) {
   if (session.element.hasPointerCapture && session.element.hasPointerCapture(event.pointerId)) {
     try {
       session.element.releasePointerCapture(event.pointerId);
@@ -234,25 +235,8 @@ function handleObjectPointerUp(event) {
     }
   }
 
-  if (!session.hasMoved) {
+  if (!cancelled && !session.hasMoved) {
     handlePossibleDoubleTap(session.element, session.pointerType);
-  }
-
-  pointerSessions.delete(event.pointerId);
-}
-
-function handleObjectPointerCancel(event) {
-  const session = pointerSessions.get(event.pointerId);
-  if (!session || session.fromPalette) {
-    return;
-  }
-
-  if (session.element.hasPointerCapture && session.element.hasPointerCapture(event.pointerId)) {
-    try {
-      session.element.releasePointerCapture(event.pointerId);
-    } catch (error) {
-      // Ignore browsers without releasePointerCapture support.
-    }
   }
 
   pointerSessions.delete(event.pointerId);
