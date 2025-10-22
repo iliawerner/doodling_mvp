@@ -54,10 +54,11 @@ const DRAG_THRESHOLD = 6;
 
 paletteItems.forEach((item) => {
   item.addEventListener('pointerdown', handlePalettePointerDown);
-  item.addEventListener('pointermove', handlePalettePointerMove);
-  item.addEventListener('pointerup', handlePalettePointerUp);
-  item.addEventListener('pointercancel', handlePalettePointerCancel);
 });
+
+window.addEventListener('pointermove', handleGlobalPointerMove, { passive: false });
+window.addEventListener('pointerup', handleGlobalPointerUp, { passive: false });
+window.addEventListener('pointercancel', handleGlobalPointerCancel, { passive: false });
 
 clearButton.addEventListener('click', clearCanvas);
 
@@ -72,6 +73,7 @@ function handlePalettePointerDown(event) {
   const session = {
     element,
     fromPalette: true,
+    source: event.currentTarget,
     offsetX: element.offsetWidth / 2,
     offsetY: element.offsetHeight / 2,
     hasMoved: true,
@@ -81,40 +83,58 @@ function handlePalettePointerDown(event) {
   pointerSessions.set(event.pointerId, session);
   positionElement(element, event.clientX, event.clientY, session.offsetX, session.offsetY);
 
-  event.currentTarget.setPointerCapture(event.pointerId);
+  if (event.currentTarget.setPointerCapture) {
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch (error) {
+      // Some browsers (notably Safari) do not support pointer capture on all elements.
+    }
+  }
 }
 
-function handlePalettePointerMove(event) {
+function handleGlobalPointerMove(event) {
   const session = pointerSessions.get(event.pointerId);
   if (!session || !session.fromPalette) {
     return;
   }
+
+  event.preventDefault();
   positionElement(session.element, event.clientX, event.clientY, session.offsetX, session.offsetY);
 }
 
-function handlePalettePointerUp(event) {
-  finalizePaletteDrag(event, false);
-}
-
-function handlePalettePointerCancel(event) {
-  finalizePaletteDrag(event, true);
-}
-
-function finalizePaletteDrag(event, cancelled) {
+function handleGlobalPointerUp(event) {
   const session = pointerSessions.get(event.pointerId);
   if (!session || !session.fromPalette) {
     return;
   }
 
-  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-    event.currentTarget.releasePointerCapture(event.pointerId);
+  event.preventDefault();
+  finalizePaletteDrag(session, event.clientX, event.clientY, false);
+}
+
+function handleGlobalPointerCancel(event) {
+  const session = pointerSessions.get(event.pointerId);
+  if (!session || !session.fromPalette) {
+    return;
   }
 
-  if (cancelled || !isInsideCanvas(event.clientX, event.clientY)) {
+  finalizePaletteDrag(session, event.clientX, event.clientY, true);
+}
+
+function finalizePaletteDrag(session, clientX, clientY, cancelled) {
+  if (session.source && session.source.releasePointerCapture) {
+    try {
+      session.source.releasePointerCapture(session.pointerId);
+    } catch (error) {
+      // Ignore browsers that do not implement releasePointerCapture for the element.
+    }
+  }
+
+  if (cancelled || !isInsideCanvas(clientX, clientY)) {
     session.element.remove();
   }
 
-  pointerSessions.delete(event.pointerId);
+  pointerSessions.delete(session.pointerId);
 }
 
 function createFidgetObject(type) {
@@ -188,7 +208,13 @@ function handleObjectPointerMove(event) {
     session.offsetX = event.clientX - rect.left;
     session.offsetY = event.clientY - rect.top;
     session.hasMoved = true;
-    session.element.setPointerCapture(event.pointerId);
+    if (session.element.setPointerCapture) {
+      try {
+        session.element.setPointerCapture(event.pointerId);
+      } catch (error) {
+        // Ignore browsers that do not support pointer capture here.
+      }
+    }
   }
 
   positionElement(session.element, event.clientX, event.clientY, session.offsetX, session.offsetY);
@@ -200,8 +226,12 @@ function handleObjectPointerUp(event) {
     return;
   }
 
-  if (session.element.hasPointerCapture(event.pointerId)) {
-    session.element.releasePointerCapture(event.pointerId);
+  if (session.element.hasPointerCapture && session.element.hasPointerCapture(event.pointerId)) {
+    try {
+      session.element.releasePointerCapture(event.pointerId);
+    } catch (error) {
+      // Ignore browsers without releasePointerCapture support.
+    }
   }
 
   if (!session.hasMoved) {
@@ -217,8 +247,12 @@ function handleObjectPointerCancel(event) {
     return;
   }
 
-  if (session.element.hasPointerCapture(event.pointerId)) {
-    session.element.releasePointerCapture(event.pointerId);
+  if (session.element.hasPointerCapture && session.element.hasPointerCapture(event.pointerId)) {
+    try {
+      session.element.releasePointerCapture(event.pointerId);
+    } catch (error) {
+      // Ignore browsers without releasePointerCapture support.
+    }
   }
 
   pointerSessions.delete(event.pointerId);
